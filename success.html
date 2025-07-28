@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Just Rooms</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff6b35 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .success-container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a1a1a;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+        }
+        .success-icon { font-size: 4rem; color: #28a745; margin-bottom: 20px; }
+        h1 { color: #1a1a1a; margin-bottom: 20px; }
+        p { margin-bottom: 15px; color: #666; }
+        .btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        .btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✅</div>
+        <h1>Payment Successful!</h1>
+        <p>Your $5.00 application fee has been processed successfully.</p>
+        <p>You can now complete your housing application.</p>
+        <a href="/index.html?paid=true" class="btn">Continue to Application</a>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        
+        if (sessionId) {
+            localStorage.setItem('paymentSessionId', sessionId);
+            localStorage.setItem('paymentCompleted', 'true');
+        }
+    </script>
+</body>
+</html>

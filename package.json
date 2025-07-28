@@ -1,0 +1,17 @@
+{
+  "name": "just-rooms-housing-app",
+  "version": "1.0.0",
+  "description": "Housing application with Stripe payment",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build needed'"
+  },
+  "dependencies": {
+    "stripe": "^12.0.0",
+    "@emailjs/nodejs": "^3.11.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
