@@ -408,7 +408,13 @@
                     <div class="form-row">
                         <div class="form-group full-width">
                             <label for="priceRangePreference">Price Range Preference <span class="required">*</span></label>
-                            <input type="text" id="priceRangePreference" name="priceRangePreference" required placeholder="e.g., $500-750">
+                            <select id="priceRangePreference" name="priceRangePreference" required>
+                                <option value="">Select desired rent range...</option>
+                                <option value="Under $950">Under $950</option>
+                                <option value="$950 - $1000">$950 - $1000</option>
+                                <option value="$1000 - $1200">$1000 - $1200</option>
+                                <option value="Over $1200">Over $1200</option>
+                            </select>
                             <div class="validation-error" id="priceRangePreference-error">Price range preference is required</div>
                         </div>
                     </div>
@@ -504,18 +510,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="monthlyIncome">Monthly Income <span class="required">*</span></label>
-                            <select id="monthlyIncome" name="monthlyIncome" required>
-                                <option value="">Select income range...</option>
-                                <option value="Under $950">Under $950</option>
-                                <option value="$950 - $1000">$950 - $1000</option>
-                                <option value="$1000 - $1200">$1000 - $1200</option>
-                                <option value="Over $1200">Over $1200</option>
-                            </select>
-                            <div class="validation-error" id="monthlyIncome-error">Monthly income range is required</div>
+                            <input type="number" id="monthlyIncome" name="monthlyIncome" min="0" step="0.01" required placeholder="Enter monthly income amount">
+                            <div class="validation-error" id="monthlyIncome-error">Monthly income is required</div>
                         </div>
                         <div class="form-group">
                             <label for="otherIncome">Other Sources of Income (Optional)</label>
-                            <input type="text" id="otherIncome" name="otherIncome">
+                            <input type="text" id="otherIncome" name="otherIncome" placeholder="e.g., Social Security, Disability, etc.">
                         </div>
                     </div>
                 </div>
@@ -881,7 +881,7 @@
         }
 
         async function submitToGoogleSheets(formData) {
-            // Submit to Google Sheets
+            // Replace with your Google Apps Script Web App URL
             const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNToNYGLLVwZG6a13189rsexIAcRHtYXydORIrT49shdd9eD4paY87HW-NXZJWKNul/exec';
             
             try {
@@ -1013,3 +1013,4 @@
     </script>
 </body>
 </html>
+
