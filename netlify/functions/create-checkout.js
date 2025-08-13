@@ -28,7 +28,7 @@ exports.handler = async (event, context) => {
             name: 'Just Rooms Housing Application Fee',
             description: 'Non-refundable application processing fee',
           },
-          unit_amount: 500, // $5.00
+          unit_amount: 2500, // $25.00
         },
         quantity: 1,
       }],

@@ -48,5 +48,20 @@
         <p>You can try again when ready.</p>
         <a href="/index.html" class="btn">Return to Application</a>
     </div>
+    
+    <script>
+        // Function to clear all payment-related data from localStorage and reset payment status
+        function clearPaymentData() {
+            // Clear all payment-related localStorage items
+            localStorage.removeItem('paymentCompleted');
+            localStorage.removeItem('paymentSessionId');
+            localStorage.removeItem('paymentIntentId');
+            localStorage.removeItem('applicationFormData');
+            localStorage.removeItem('applicationId');
+        }
+        
+        // Clear payment data when the page loads since payment was cancelled
+        clearPaymentData();
+    </script>
 </body>
 </html>

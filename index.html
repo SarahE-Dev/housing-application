@@ -312,17 +312,6 @@
                 There was an error processing your application. Please try again.
             </div>
             
-            <div class="payment-notice" id="paymentNotice">
-                <h3>💳 Application Fee Required</h3>
-                <p>Review your application below, then pay the non-refundable <strong>$5.00</strong> processing fee to submit.</p>
-                <button class="payment-btn" onclick="processPayment()">Pay $5.00 to Submit Application</button>
-            </div>
-            
-            <div class="payment-success" id="paymentSuccess">
-                <h3>✅ Payment Successful!</h3>
-                <p>Your payment has been processed. You can now submit your application below.</p>
-            </div>
-            
             <form id="housingForm">
                 <div class="form-section">
                     <h3>Personal Information</h3>
@@ -547,7 +536,7 @@
                     <h3>Background Information</h3>
                     <div class="form-row">
                         <div class="form-group full-width">
-                            <label>Have you ever been convicted of a felony? <span class="required">*</span></label>
+                            <label>Have you been convicted of a crime? <span class="required">*</span></label>
                             <div class="radio-group">
                                 <div class="radio-option">
                                     <input type="radio" id="felonyYes" name="felonyConviction" value="Yes" required>
@@ -558,7 +547,7 @@
                                     <label for="felonyNo">No</label>
                                 </div>
                             </div>
-                            <div class="validation-error" id="felonyConviction-error">Please answer the felony conviction question</div>
+                            <div class="validation-error" id="felonyConviction-error">Please answer the conviction question</div>
                             
                             <div id="felonyDetails-conditional" class="conditional-field">
                                 <label for="felonyDetails">If yes, please provide details (type of conviction, year)</label>
@@ -569,7 +558,7 @@
                     
                     <div class="form-row">
                         <div class="form-group full-width">
-                            <label>Have you ever been convicted of a sexual offense? <span class="required">*</span></label>
+                            <label>Are you required to register under Megan's Law or any similar registry? <span class="required">*</span></label>
                             <div class="radio-group">
                                 <div class="radio-option">
                                     <input type="radio" id="sexOffenseYes" name="sexOffenseConviction" value="Yes" required>
@@ -580,7 +569,7 @@
                                     <label for="sexOffenseNo">No</label>
                                 </div>
                             </div>
-                            <div class="validation-error" id="sexOffenseConviction-error">Please answer the sexual offense conviction question</div>
+                            <div class="validation-error" id="sexOffenseConviction-error">Please answer the registry question</div>
                             
                             <div id="sexOffenseDetails-conditional" class="conditional-field">
                                 <label for="sexOffenseDetails">If yes, please provide details</label>
@@ -634,6 +623,18 @@
                     </div>
                 </div>
 
+                <div class="payment-notice" id="paymentNotice">
+                    <h3>💳 Application Fee Required</h3>
+                    <p>A non-refundable <strong>$25.00</strong> processing fee is required before you can submit your application.</p>
+                    <button type="button" class="payment-btn" onclick="processPayment()">Pay $25.00 Application Fee</button>
+                </div>
+                
+                <div class="payment-success" id="paymentSuccess">
+                    <h3>✅ Payment Successful!</h3>
+                    <p>Your payment has been processed. You can now submit your application.</p>
+                    <button type="button" class="clear-payment-btn" onclick="clearPaymentData()" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px;">Clear Payment (Demo Only)</button>
+                </div>
+
                 <div class="payment-required-notice" id="paymentRequiredNotice">
                     ⚠️ Payment is required before you can submit your application. Please complete the payment above.
                 </div>
@@ -645,14 +646,55 @@
 
     <script>
         // Initialize Stripe with your publishable key
-        const stripe = Stripe('pk_test_51Rpm13D6Grd082upYz0A4YzfJB0NwRS9Fk3cgIPzT7Y3yzmxDQM4IzuXYbYNcfKMYglzWFUDYOwqMvhmgAGkTe4t0009BYtJtb'); // Replace with your actual key
+        const stripe = Stripe('pk_test_51Rssj04FwSSAQQpGw5nqJ1ejOwFemofNv31uBQqMjYEs3zrisaIfbPSeNeqXKC1a2L5NYcBmA50pJULMTgAaQu9K00LDcYzmJv'); // Replace with your actual key
         
         let paymentCompleted = false;
+        let isProcessingPayment = false;
         let applicationId = '';
         let paymentIntentId = '';
 
         function generateApplicationId() {
             return 'APP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+        }
+
+        // Function to restore form data from localStorage
+        function restoreFormData() {
+            const savedData = localStorage.getItem('savedFormData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                for (let [key, value] of Object.entries(data)) {
+                    if (key === 'preferredLocation') {
+                        // Handle multiple checkboxes
+                        if (Array.isArray(value)) {
+                            value.forEach(val => {
+                                const checkbox = document.querySelector(`input[name="${key}"][value="${val}"]`);
+                                if (checkbox) checkbox.checked = true;
+                            });
+                        }
+                    } else {
+                        const field = document.querySelector(`[name="${key}"]`);
+                        if (field) {
+                            if (field.type === 'radio') {
+                                const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
+                                if (radio) radio.checked = true;
+                            } else if (field.type === 'checkbox') {
+                                field.checked = true;
+                            } else {
+                                field.value = value;
+                            }
+                        }
+                    }
+                }
+                
+                // Trigger conditional field handlers
+                handleConditionalFields();
+                
+                // Re-trigger change events to show/hide conditional fields
+                document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                    radio.dispatchEvent(new Event('change'));
+                });
+            }
         }
 
         // Check if payment was completed (from URL or localStorage)
@@ -672,64 +714,37 @@
                 document.getElementById('paymentNotice').style.display = 'none';
                 document.getElementById('paymentSuccess').style.display = 'block';
                 document.getElementById('submitBtn').disabled = false;
+                
+                // Restore form data when payment is successful
+                restoreFormData();
             }
         }
 
-        async function processPayment() {
-            const paymentBtn = document.querySelector('.payment-btn');
-            paymentBtn.innerHTML = 'Processing...';
-            paymentBtn.disabled = true;
-
-            try {
-                // Create payment intent on your server
-                const response = await fetch('/create-payment-intent', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        amount: 500, // $5.00 in cents
-                        currency: 'usd',
-                        description: 'Housing Application Fee'
-                    }),
-                });
-
-                const { client_secret } = await response.json();
-
-                // Confirm payment with Stripe
-                const { error, paymentIntent } = await stripe.confirmCardPayment(client_secret, {
-                    payment_method: {
-                        card: {
-                            // For testing, we'll simulate a successful payment
-                            // In production, you'd collect real card details
-                        }
-                    }
-                });
-
-                if (error) {
-                    throw new Error(error.message);
-                } else if (paymentIntent.status === 'succeeded') {
-                    paymentCompleted = true;
-                    applicationId = generateApplicationId();
-                    paymentIntentId = paymentIntent.id;
-                    
-                    document.getElementById('paymentNotice').style.display = 'none';
-                    document.getElementById('paymentSuccess').style.display = 'block';
-                    document.getElementById('submitBtn').disabled = false;
-                    
-                    // Scroll to success message
-                    document.getElementById('paymentSuccess').scrollIntoView({ 
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            } catch (error) {
-                console.error('Payment failed:', error);
-                paymentBtn.innerHTML = 'Payment Failed - Try Again';
-                paymentBtn.disabled = false;
-                alert('Payment failed: ' + error.message);
-            }
+        // Function to clear all payment-related data from localStorage and reset payment status
+        function clearPaymentData() {
+            // Clear all payment-related localStorage items
+            localStorage.removeItem('paymentCompleted');
+            localStorage.removeItem('paymentSessionId');
+            localStorage.removeItem('paymentIntentId');
+            localStorage.removeItem('applicationFormData');
+            localStorage.removeItem('savedFormData');
+            localStorage.removeItem('applicationId');
+            
+            // Reset payment status variables
+            paymentCompleted = false;
+            paymentIntentId = '';
+            applicationId = '';
+            
+            // Reset UI elements to initial state
+            document.getElementById('paymentNotice').style.display = 'block';
+            document.getElementById('paymentSuccess').style.display = 'none';
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = 'Submit Application';
+            
+            // Clear the form
+            document.getElementById('housingForm').reset();
         }
+
 
         async function processPayment() {
             const paymentBtn = document.querySelector('.payment-btn');
@@ -737,6 +752,26 @@
             paymentBtn.disabled = true;
 
             try {
+                // Capture form data before redirecting
+                const form = document.getElementById('housingForm');
+                const formData = new FormData(form);
+                const savedData = {};
+                
+                // Save all form data to localStorage
+                for (let [key, value] of formData.entries()) {
+                    if (key === 'preferredLocation') {
+                        // Handle multiple checkboxes
+                        if (!savedData[key]) {
+                            savedData[key] = [];
+                        }
+                        savedData[key].push(value);
+                    } else {
+                        savedData[key] = value;
+                    }
+                }
+                
+                localStorage.setItem('savedFormData', JSON.stringify(savedData));
+                
                 applicationId = generateApplicationId();
                 localStorage.setItem('applicationId', applicationId);
                 
@@ -882,7 +917,7 @@
 
         async function submitToGoogleSheets(formData) {
             // Replace with your Google Apps Script Web App URL
-            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNToNYGLLVwZG6a13189rsexIAcRHtYXydORIrT49shdd9eD4paY87HW-NXZJWKNul/exec';
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTwuP9rJtQF_xD27jpRUMlTeJtmoMO_EMYlhml5SNXD6Xs2lp-H54mUOeSJS3xfaRs/exec';
             
             try {
                 // Send to Google Sheets
@@ -972,7 +1007,7 @@
                 data.ApplicationID = applicationId;
                 data.PaymentIntentID = paymentIntentId;
                 data.Paid = 'Yes';
-                data.PaymentAmount = '$5.00';
+                data.PaymentAmount = '$25.00';
 
                 // Convert form data to object
                 for (let [key, value] of formData.entries()) {
