@@ -644,15 +644,6 @@
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn" disabled>Submit Application</button>
-                
-                <!-- Test Email Button (for debugging) -->
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #007bff;">
-                    <h4 style="color: #007bff; margin: 0 0 10px 0;">🧪 Email Test (Browser Only)</h4>
-                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">Test the browser EmailJS function:</p>
-                    <input type="email" id="testEmail" placeholder="Enter email to test" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; margin-right: 10px; width: 250px;">
-                    <button type="button" onclick="testBrowserEmail()" style="background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">Send Test Email (Browser)</button>
-                    <div id="emailTestResult" style="margin-top: 10px; padding: 8px; border-radius: 5px; display: none;"></div>
-                </div>
             </form>
         </div>
     </div>
@@ -948,50 +939,6 @@
             }
         }
 
-        // Test email function for debugging (browser only)
-        async function testBrowserEmail() {
-            const testEmail = document.getElementById('testEmail').value;
-            const resultDiv = document.getElementById('emailTestResult');
-            
-            if (!testEmail) {
-                resultDiv.style.display = 'block';
-                resultDiv.style.background = '#fff3cd';
-                resultDiv.style.color = '#856404';
-                resultDiv.innerHTML = '⚠️ Please enter an email address to test';
-                return;
-            }
-
-            resultDiv.style.display = 'block';
-            resultDiv.style.background = '#cce5ff';
-            resultDiv.style.color = '#004085';
-            resultDiv.innerHTML = '⏳ Sending test email via browser...';
-
-            try {
-                // Create test form data
-                const testData = {
-                    emailAddress: testEmail,
-                    firstName: 'Test',
-                    lastName: 'User',
-                    ConfirmationCode: 'TE1234',
-                    ApplicationID: 'TEST-' + Date.now()
-                };
-
-                console.log('Testing browser EmailJS with:', testData);
-
-                // Call the browser EmailJS function directly
-                await sendConfirmationEmails(testData);
-                
-                resultDiv.style.background = '#d4edda';
-                resultDiv.style.color = '#155724';
-                resultDiv.innerHTML = `✅ Browser email test completed! Check console for details.`;
-                
-            } catch (error) {
-                console.error('Browser email test error:', error);
-                resultDiv.style.background = '#f8d7da';
-                resultDiv.style.color = '#721c24';
-                resultDiv.innerHTML = `❌ Browser email test failed: ${error.message}`;
-            }
-        }
 
         async function sendConfirmationEmails(formData) {
             try {
