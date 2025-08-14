@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Just Rooms Housing Application</title>
     <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -305,7 +306,9 @@
         
         <div class="form-container">
             <div class="success-message" id="successMessage">
-                Application submitted successfully! You will receive a confirmation email shortly.
+                <h3>✅ Application Submitted Successfully!</h3>
+                <p>Your confirmation code is: <strong id="confirmationCodeDisplay"></strong></p>
+                <p>Please save this code for your records. You will also receive a confirmation email shortly.</p>
             </div>
             
             <div class="error-message" id="errorMessage">
@@ -315,6 +318,7 @@
             <form id="housingForm">
                 <div class="form-section">
                     <h3>Personal Information</h3>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px; font-style: italic;">Please spell your name exactly as it appears on your ID or Social Security card</p>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="firstName">First Name <span class="required">*</span></label>
@@ -623,6 +627,15 @@
                     </div>
                 </div>
 
+                <!-- Development Mode Payment Bypass -->
+                <div id="devBypass" style="background: #ffc107; color: #212529; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
+                    <h4>🔧 Development Mode</h4>
+                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="bypassPayment" onchange="togglePaymentBypass()">
+                        <span>Bypass payment for testing</span>
+                    </label>
+                </div>
+
                 <div class="payment-notice" id="paymentNotice">
                     <h3>💳 Application Fee Required</h3>
                     <p>A non-refundable <strong>$25.00</strong> processing fee is required before you can submit your application.</p>
@@ -648,13 +661,75 @@
         // Initialize Stripe with your publishable key
         const stripe = Stripe('pk_test_51Rssj04FwSSAQQpGw5nqJ1ejOwFemofNv31uBQqMjYEs3zrisaIfbPSeNeqXKC1a2L5NYcBmA50pJULMTgAaQu9K00LDcYzmJv'); // Replace with your actual key
         
+        // Initialize EmailJS
+        emailjs.init('YOUR_EMAILJS_PUBLIC_KEY'); // Replace with your EmailJS public key
+        
         let paymentCompleted = false;
         let isProcessingPayment = false;
         let applicationId = '';
         let paymentIntentId = '';
+        let isDevelopmentMode = false;
+
+        // Check if we're in development mode (localhost or .netlify.app)
+        function checkDevelopmentMode() {
+            const hostname = window.location.hostname;
+            isDevelopmentMode = hostname === 'localhost' || 
+                              hostname === '127.0.0.1' || 
+                              hostname.includes('.netlify.app') ||
+                              hostname.includes('.ngrok.io');
+            
+            if (isDevelopmentMode) {
+                document.getElementById('devBypass').style.display = 'block';
+            }
+        }
+
+        // Toggle payment bypass for development
+        function togglePaymentBypass() {
+            const bypassCheckbox = document.getElementById('bypassPayment');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (bypassCheckbox.checked) {
+                // Bypass payment
+                paymentCompleted = true;
+                applicationId = generateApplicationId();
+                paymentIntentId = 'DEV_BYPASS_' + Date.now();
+                
+                document.getElementById('paymentNotice').style.display = 'none';
+                document.getElementById('paymentSuccess').style.display = 'block';
+                document.getElementById('paymentSuccess').innerHTML = '<h3>🔧 Development Mode - Payment Bypassed</h3><p>You can now submit your application without payment.</p>';
+                submitBtn.disabled = false;
+            } else {
+                // Restore normal payment requirement
+                paymentCompleted = false;
+                applicationId = '';
+                paymentIntentId = '';
+                
+                document.getElementById('paymentNotice').style.display = 'block';
+                document.getElementById('paymentSuccess').style.display = 'none';
+                submitBtn.disabled = true;
+            }
+        }
 
         function generateApplicationId() {
             return 'APP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+        }
+
+        function generateConfirmationCode() {
+            // Generate a 6-character confirmation code: 2 letters + 4 numbers
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numbers = '0123456789';
+            
+            let code = '';
+            // Add 2 random letters
+            for (let i = 0; i < 2; i++) {
+                code += letters.charAt(Math.floor(Math.random() * letters.length));
+            }
+            // Add 4 random numbers
+            for (let i = 0; i < 4; i++) {
+                code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+            }
+            
+            return code;
         }
 
         // Function to restore form data from localStorage
@@ -917,7 +992,7 @@
 
         async function submitToGoogleSheets(formData) {
             // Replace with your Google Apps Script Web App URL
-            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTwuP9rJtQF_xD27jpRUMlTeJtmoMO_EMYlhml5SNXD6Xs2lp-H54mUOeSJS3xfaRs/exec';
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQYPOzfShisM3KjI_fcXcpZsSiBb0x05dWHJdDu9W8Q9hmu_cjonYwVzz5uR5YSZEx/exec';
             
             try {
                 // Send to Google Sheets
@@ -930,14 +1005,8 @@
                     body: JSON.stringify(formData)
                 });
 
-                // Send confirmation emails
-                await fetch('/.netlify/functions/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
+                // Send confirmation emails using EmailJS from browser
+                // await sendConfirmationEmails(formData); // Temporarily disabled until EmailJS is configured
 
                 return true;
             } catch (error) {
@@ -946,8 +1015,51 @@
             }
         }
 
+        async function sendConfirmationEmails(formData) {
+            try {
+                // Send confirmation email to applicant
+                await emailjs.send(
+                    'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
+                    'YOUR_TEMPLATE_ID', // Replace with your template ID
+                    {
+                        to_email: formData.emailAddress,
+                        to_name: `${formData.firstName} ${formData.lastName}`,
+                        confirmation_code: formData.ConfirmationCode,
+                        application_id: formData.ApplicationID,
+                        preferred_location: formData.preferredLocation,
+                        move_in_date: formData.desiredMoveInDate,
+                        from_name: 'Just Rooms Housing'
+                    }
+                );
+
+                // Send notification email to admin
+                await emailjs.send(
+                    'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
+                    'YOUR_ADMIN_TEMPLATE_ID', // Replace with your admin template ID
+                    {
+                        to_email: 'seatherly.prsvr@gmail.com',
+                        applicant_name: `${formData.firstName} ${formData.lastName}`,
+                        confirmation_code: formData.ConfirmationCode,
+                        application_id: formData.ApplicationID,
+                        applicant_email: formData.emailAddress,
+                        phone_number: formData.phoneNumber,
+                        preferred_location: formData.preferredLocation,
+                        from_name: 'Housing Application System'
+                    }
+                );
+
+                console.log('Emails sent successfully');
+            } catch (error) {
+                console.error('Email error:', error);
+                // Don't fail the whole submission if emails fail
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're in development mode
+            checkDevelopmentMode();
+            
             // Check payment status on page load
             checkPaymentStatus();
             
@@ -1002,9 +1114,13 @@
                 const formData = new FormData(this);
                 const data = {};
                 
-                // Add timestamp, application ID, and payment info
+                // Generate confirmation code
+                const confirmationCode = generateConfirmationCode();
+                
+                // Add timestamp, application ID, confirmation code, and payment info
                 data.Timestamp = new Date().toISOString();
                 data.ApplicationID = applicationId;
+                data.ConfirmationCode = confirmationCode;
                 data.PaymentIntentID = paymentIntentId;
                 data.Paid = 'Yes';
                 data.PaymentAmount = '$25.00';
@@ -1031,6 +1147,22 @@
                 const success = await submitToGoogleSheets(data);
 
                 if (success) {
+                    // Display the confirmation code
+                    document.getElementById('confirmationCodeDisplay').textContent = confirmationCode;
+                    
+                    // Clear payment data after successful submission
+                    localStorage.removeItem('paymentCompleted');
+                    localStorage.removeItem('paymentSessionId');
+                    localStorage.removeItem('paymentIntentId');
+                    localStorage.removeItem('savedFormData');
+                    localStorage.removeItem('applicationId');
+                    
+                    // Reset payment status variables
+                    paymentCompleted = false;
+                    paymentIntentId = '';
+                    applicationId = '';
+                    
+                    // Show success message
                     document.getElementById('successMessage').style.display = 'block';
                     document.getElementById('housingForm').style.display = 'none';
                     document.getElementById('paymentSuccess').style.display = 'none';
@@ -1038,6 +1170,19 @@
                         behavior: 'smooth',
                         block: 'center'
                     });
+                    
+                    // Add a button to start a new application
+                    const successMessage = document.getElementById('successMessage');
+                    if (!successMessage.querySelector('.new-application-btn')) {
+                        const newAppBtn = document.createElement('button');
+                        newAppBtn.textContent = 'Submit Another Application';
+                        newAppBtn.className = 'payment-btn new-application-btn';
+                        newAppBtn.style.marginTop = '20px';
+                        newAppBtn.onclick = function() {
+                            location.reload(); // Reload the page to start fresh
+                        };
+                        successMessage.appendChild(newAppBtn);
+                    }
                 } else {
                     document.getElementById('errorMessage').style.display = 'block';
                     submitBtn.innerHTML = 'Submit Application';

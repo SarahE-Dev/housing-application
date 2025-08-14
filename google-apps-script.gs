@@ -1,63 +1,66 @@
 function doPost(e) {
   try {
+    Logger.log('Received POST request');
+    Logger.log('Request body: ' + e.postData.contents);
+    
     // Since this script is bound to the spreadsheet, we can use getActiveSpreadsheet()
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    Logger.log('Spreadsheet found: ' + spreadsheet.getName());
     
     // Specify which sheet to use
-    let sheet = spreadsheet.getSheetByName('Housing Applications');
+    let sheet = spreadsheet.getSheetByName('Housing_Applications');
     
     // Create the sheet if it doesn't exist
     if (!sheet) {
-      sheet = spreadsheet.insertSheet('Housing Applications');
+      Logger.log('Creating new sheet: Housing Applications');
+      sheet = spreadsheet.insertSheet('Housing_Applications');
     }
     
     // Parse the incoming data
     const data = JSON.parse(e.postData.contents);
+    Logger.log('Parsed data keys: ' + Object.keys(data).join(', '));
     
     // Add headers if this is the first row (define proper headers first)
     if (sheet.getLastRow() === 0) {
+      Logger.log('Adding headers to new sheet');
       const headers = [
         'Timestamp',
-        'Application ID',
-        'Payment Intent ID',
+        'Application_ID',
+        'Confirmation_Code',
+        'Payment_Intent_ID',
         'Paid',
-        'Payment Amount',
-        'First Name',
-        'Last Name',
-        'Date of Birth',
-        'Phone Number',
-        'Email Address',
-        'Current Address',
-        'Employment Status',
-        'Employer Name',
-        'Employer Contact',
-        'Job Title',
-        'Monthly Income',
-        'Income Proof',
-        'Preferred Location',
-        'Move In Date',
-        'Household Size',
-        'Pets',
-        'Pet Description',
-        'Previous Address',
-        'Previous Landlord',
-        'Landlord Contact',
-        'Reason for Leaving',
-        'Emergency Contact Name',
-        'Emergency Contact Relationship',
-        'Emergency Contact Phone',
-        'Has Case Manager',
-        'Case Manager Name',
-        'Case Manager Contact',
-        'Felony Conviction',
-        'Felony Details',
-        'Sex Offense Conviction',
-        'Sex Offense Details',
-        'Additional Information',
-        'Special Needs',
-        'Questions Comments',
-        'Consent Criminal Check',
-        'Consent Verification'
+        'Payment_Amount',
+        'First_Name',
+        'Last_Name',
+        'Date_of_Birth',
+        'Phone_Number',
+        'Email_Address',
+        'Current_Address',
+        'Emergency_Contact_Name',
+        'Emergency_Contact_Phone',
+        'Preferred_Location',
+        'Desired_Move_In_Date',
+        'Price_Range_Preference',
+        'Has_Case_Manager',
+        'Case_Manager_Name',
+        'Case_Manager_Contact',
+        'Receiving_Rental_Assistance',
+        'Assistance_Program',
+        'Employment_Status',
+        'Employer_Name',
+        'Employer_Contact',
+        'Monthly_Income',
+        'Other_Income',
+        'Reference_Name',
+        'Reference_Relationship',
+        'Reference_Phone',
+        'Felony_Conviction',
+        'Felony_Details',
+        'Sex_Offense_Conviction',
+        'Sex_Offense_Details',
+        'Have_Pets',
+        'Additional_Info',
+        'Applicant_Signature'
       ];
       
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -76,6 +79,7 @@ function doPost(e) {
     const rowData = [
       data.Timestamp || new Date().toISOString(),
       data.ApplicationID || '',
+      data.ConfirmationCode || '',
       data.PaymentIntentID || '',
       data.Paid || 'Yes',
       data.PaymentAmount || '$25.00',
@@ -85,42 +89,39 @@ function doPost(e) {
       data.phoneNumber || '',
       data.emailAddress || '',
       data.currentAddress || '',
-      data.employmentStatus || '',
-      data.employerName || '',
-      data.employerContact || '',
-      data.jobTitle || '',
-      data.monthlyIncome || '',
-      data.incomeProof || '',
-      data.preferredLocation || '',
-      data.moveInDate || '',
-      data.householdSize || '',
-      data.pets || '',
-      data.petDescription || '',
-      data.previousAddress || '',
-      data.previousLandlord || '',
-      data.landlordContact || '',
-      data.reasonForLeaving || '',
       data.emergencyContactName || '',
-      data.emergencyContactRelationship || '',
       data.emergencyContactPhone || '',
+      data.preferredLocation || '',
+      data.desiredMoveInDate || '',
+      data.priceRangePreference || '',
       data.hasCaseManager || '',
       data.caseManagerName || '',
       data.caseManagerContact || '',
+      data.receivingRentalAssistance || '',
+      data.assistanceProgram || '',
+      data.employmentStatus || '',
+      data.employerName || '',
+      data.employerContact || '',
+      data.monthlyIncome || '',
+      data.otherIncome || '',
+      data.referenceName || '',
+      data.referenceRelationship || '',
+      data.referencePhone || '',
       data.felonyConviction || '',
       data.felonyDetails || '',
       data.sexOffenseConviction || '',
       data.sexOffenseDetails || '',
-      data.additionalInformation || '',
-      data.specialNeeds || '',
-      data.questionsComments || '',
-      data.consentCriminalCheck || 'Yes',
-      data.consentVerification || 'Yes'
+      data.havePets || '',
+      data.additionalInfo || '',
+      data.applicantSignature || ''
     ];
     
     // Add the form data
+    Logger.log('Adding row to sheet');
     sheet.appendRow(rowData);
     
     // Return success response
+    Logger.log('Successfully added data to sheet');
     return ContentService.createTextOutput(JSON.stringify({
       status: 'success',
       message: 'Application submitted successfully'
@@ -133,6 +134,14 @@ function doPost(e) {
       message: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function doGet(e) {
+  Logger.log('Received GET request');
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: 'Google Apps Script is running and ready to receive data'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 // Add CORS support
