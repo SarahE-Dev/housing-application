@@ -17,18 +17,17 @@ exports.handler = async (event, context) => {
 
   try {
     const formData = JSON.parse(event.body);
+    console.log('Sending email for:', formData.emailAddress);
     
-    // Send confirmation email to applicant
-    await emailjs.send(
+    // Send confirmation email to applicant only
+    const result = await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
       {
         to_email: formData.emailAddress,
         to_name: `${formData.firstName} ${formData.lastName}`,
-        application_id: formData.ApplicationID,
-        preferred_location: formData.preferredLocation,
-        move_in_date: formData.desiredMoveInDate,
-        from_name: 'Just Rooms Housing'
+        confirmation_code: formData.ConfirmationCode,
+        application_id: formData.ApplicationID
       },
       {
         publicKey: process.env.EMAILJS_PUBLIC_KEY,
@@ -36,24 +35,7 @@ exports.handler = async (event, context) => {
       }
     );
 
-    // Send notification email to admin
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_ADMIN_TEMPLATE_ID,
-      {
-        to_email: 'seatherly.prsvr@gmail.com',
-        applicant_name: `${formData.firstName} ${formData.lastName}`,
-        application_id: formData.ApplicationID,
-        applicant_email: formData.emailAddress,
-        phone_number: formData.phoneNumber,
-        preferred_location: formData.preferredLocation,
-        from_name: 'Housing Application System'
-      },
-      {
-        publicKey: process.env.EMAILJS_PUBLIC_KEY,
-        privateKey: process.env.EMAILJS_PRIVATE_KEY,
-      }
-    );
+    console.log('Email sent successfully:', result.status);
 
     return {
       statusCode: 200,

@@ -644,6 +644,15 @@
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn" disabled>Submit Application</button>
+                
+                <!-- Test Email Button (for debugging) -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #007bff;">
+                    <h4 style="color: #007bff; margin: 0 0 10px 0;">🧪 Email Test (Browser Only)</h4>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">Test the browser EmailJS function:</p>
+                    <input type="email" id="testEmail" placeholder="Enter email to test" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; margin-right: 10px; width: 250px;">
+                    <button type="button" onclick="testBrowserEmail()" style="background: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">Send Test Email (Browser)</button>
+                    <div id="emailTestResult" style="margin-top: 10px; padding: 8px; border-radius: 5px; display: none;"></div>
+                </div>
             </form>
         </div>
     </div>
@@ -652,8 +661,6 @@
         // Initialize Stripe with your publishable key
         const stripe = Stripe('pk_test_51Rssj04FwSSAQQpGw5nqJ1ejOwFemofNv31uBQqMjYEs3zrisaIfbPSeNeqXKC1a2L5NYcBmA50pJULMTgAaQu9K00LDcYzmJv'); // Replace with your actual key
         
-        // Initialize EmailJS
-        emailjs.init('YOUR_EMAILJS_PUBLIC_KEY'); // Replace with your EmailJS public key
         
         let paymentCompleted = false;
         let isProcessingPayment = false;
@@ -931,8 +938,8 @@
                     body: JSON.stringify(formData)
                 });
 
-                // Send confirmation emails using EmailJS from browser
-                // await sendConfirmationEmails(formData); // Temporarily disabled until EmailJS is configured
+                // Send confirmation email using EmailJS from browser
+                await sendConfirmationEmails(formData);
 
                 return true;
             } catch (error) {
@@ -941,48 +948,102 @@
             }
         }
 
+        // Test email function for debugging (browser only)
+        async function testBrowserEmail() {
+            const testEmail = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('emailTestResult');
+            
+            if (!testEmail) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#fff3cd';
+                resultDiv.style.color = '#856404';
+                resultDiv.innerHTML = '⚠️ Please enter an email address to test';
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#cce5ff';
+            resultDiv.style.color = '#004085';
+            resultDiv.innerHTML = '⏳ Sending test email via browser...';
+
+            try {
+                // Create test form data
+                const testData = {
+                    emailAddress: testEmail,
+                    firstName: 'Test',
+                    lastName: 'User',
+                    ConfirmationCode: 'TE1234',
+                    ApplicationID: 'TEST-' + Date.now()
+                };
+
+                console.log('Testing browser EmailJS with:', testData);
+
+                // Call the browser EmailJS function directly
+                await sendConfirmationEmails(testData);
+                
+                resultDiv.style.background = '#d4edda';
+                resultDiv.style.color = '#155724';
+                resultDiv.innerHTML = `✅ Browser email test completed! Check console for details.`;
+                
+            } catch (error) {
+                console.error('Browser email test error:', error);
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.innerHTML = `❌ Browser email test failed: ${error.message}`;
+            }
+        }
+
         async function sendConfirmationEmails(formData) {
             try {
+                console.log('EmailJS object:', emailjs);
+                console.log('Sending email to:', formData.emailAddress);
+                console.log('Full form data:', formData);
+
+                // Check if EmailJS is loaded
+                if (typeof emailjs === 'undefined') {
+                    throw new Error('EmailJS library not loaded');
+                }
+
+                const emailData = {
+                    email: formData.emailAddress,
+                    to_name: `${formData.firstName} ${formData.lastName}`,
+                    confirmation_code: formData.ConfirmationCode,
+                    application_id: formData.ApplicationID
+                };
+
+                console.log('Email data being sent:', emailData);
+                console.log('Service ID:', 'service_lbpvf3o');
+                console.log('Template ID:', 'application_confirmation');
+
                 // Send confirmation email to applicant
-                await emailjs.send(
-                    'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-                    'YOUR_TEMPLATE_ID', // Replace with your template ID
-                    {
-                        to_email: formData.emailAddress,
-                        to_name: `${formData.firstName} ${formData.lastName}`,
-                        confirmation_code: formData.ConfirmationCode,
-                        application_id: formData.ApplicationID,
-                        preferred_location: formData.preferredLocation,
-                        move_in_date: formData.desiredMoveInDate,
-                        from_name: 'Just Rooms Housing'
-                    }
+                const result = await emailjs.send(
+                    'service_lbpvf3o', // Your actual service ID
+                    'application_confirmation', // Your actual template ID
+                    emailData
                 );
 
-                // Send notification email to admin
-                await emailjs.send(
-                    'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-                    'YOUR_ADMIN_TEMPLATE_ID', // Replace with your admin template ID
-                    {
-                        to_email: 'seatherly.prsvr@gmail.com',
-                        applicant_name: `${formData.firstName} ${formData.lastName}`,
-                        confirmation_code: formData.ConfirmationCode,
-                        application_id: formData.ApplicationID,
-                        applicant_email: formData.emailAddress,
-                        phone_number: formData.phoneNumber,
-                        preferred_location: formData.preferredLocation,
-                        from_name: 'Housing Application System'
-                    }
-                );
-
-                console.log('Emails sent successfully');
+                console.log('✅ Email sent successfully:', result);
+                console.log('Email result status:', result.status);
+                console.log('Email result text:', result.text);
             } catch (error) {
-                console.error('Email error:', error);
+                console.error('❌ Email error:', error);
+                console.error('Error details:', error.message, error.stack);
+                console.error('Error status:', error.status);
+                console.error('Error text:', error.text);
                 // Don't fail the whole submission if emails fail
             }
         }
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing EmailJS...');
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init('79gm72lYMHKoKTF0-'); // Your actual public key
+                console.log('✅ EmailJS initialized successfully');
+            } else {
+                console.error('❌ EmailJS library not loaded');
+            }
+            
             // Check payment status on page load
             checkPaymentStatus();
             

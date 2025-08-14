@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Application Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f4f4f4;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #ff6b35 0%, #1a1a1a 100%); padding: 30px 40px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 2rem; font-weight: bold;">🏠 Just Rooms Housing</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 1.1rem;">Application Confirmation</p>
+        </div>
+
+        <!-- Main Content -->
+        <div style="padding: 40px;">
+            <h2 style="color: #1a1a1a; margin-top: 0; margin-bottom: 20px;">Dear {{to_name}},</h2>
+            
+            <p style="color: #333; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+                Thank you for submitting your housing application! We have successfully received your application and payment.
+            </p>
+
+            <!-- Confirmation Details Box -->
+            <div style="background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%); border-radius: 15px; padding: 25px; margin-bottom: 30px; color: white;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.3rem;">✅ Your Confirmation Details</h3>
+                <div style="background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 15px; margin-top: 15px;">
+                    <p style="margin: 8px 0; font-size: 1.1rem;"><strong>Confirmation Code:</strong> <span style="font-size: 1.3rem; font-weight: bold; background: rgba(255, 255, 255, 0.2); padding: 5px 10px; border-radius: 5px;">{{confirmation_code}}</span></p>
+                    <p style="margin: 8px 0;"><strong>Application ID:</strong> {{application_id}}</p>
+                    <p style="margin: 8px 0;"><strong>Preferred Location:</strong> {{preferred_location}}</p>
+                    <p style="margin: 8px 0;"><strong>Desired Move-in Date:</strong> {{move_in_date}}</p>
+                </div>
+            </div>
+
+            <!-- What's Next Section -->
+            <div style="background: #f8f9fa; border-left: 4px solid #ff6b35; padding: 20px; margin-bottom: 30px; border-radius: 0 10px 10px 0;">
+                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 1.2rem;">📋 What Happens Next?</h3>
+                <ul style="color: #666; line-height: 1.6; margin: 0; padding-left: 20px;">
+                    <li>Our team will review your application thoroughly</li>
+                    <li>We will contact you within <strong>2-3 business days</strong></li>
+                    <li>You may be asked to schedule a viewing or interview</li>
+                    <li>We'll guide you through the next steps in the process</li>
+                </ul>
+            </div>
+
+            <!-- Important Notice -->
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; padding: 20px; margin-bottom: 30px;">
+                <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Important - Save This Information</h4>
+                <p style="color: #856404; margin: 0; line-height: 1.5;">
+                    Please save your confirmation code <strong>{{confirmation_code}}</strong> for your records. 
+                    You may need this code when we contact you or if you need to reference your application.
+                </p>
+            </div>
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+                If you have any questions about your application, please don't hesitate to contact us and reference your confirmation code.
+            </p>
+
+            <p style="color: #333; margin-bottom: 30px;">
+                Best regards,<br>
+                <strong>{{from_name}}</strong>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #1a1a1a; padding: 25px 40px; text-align: center;">
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 0; font-size: 0.9rem;">
+                This is an automated confirmation email. Please do not reply to this email.
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.6); margin: 10px 0 0 0; font-size: 0.8rem;">
+                © {{from_name}} - Quality Housing Solutions
+            </p>
+        </div>
+    </div>
+</body>
+</html>
