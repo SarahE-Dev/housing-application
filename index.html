@@ -627,14 +627,6 @@
                     </div>
                 </div>
 
-                <!-- Development Mode Payment Bypass -->
-                <div id="devBypass" style="background: #ffc107; color: #212529; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
-                    <h4>🔧 Development Mode</h4>
-                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                        <input type="checkbox" id="bypassPayment" onchange="togglePaymentBypass()">
-                        <span>Bypass payment for testing</span>
-                    </label>
-                </div>
 
                 <div class="payment-notice" id="paymentNotice">
                     <h3>💳 Application Fee Required</h3>
@@ -645,7 +637,6 @@
                 <div class="payment-success" id="paymentSuccess">
                     <h3>✅ Payment Successful!</h3>
                     <p>Your payment has been processed. You can now submit your application.</p>
-                    <button type="button" class="clear-payment-btn" onclick="clearPaymentData()" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px;">Clear Payment (Demo Only)</button>
                 </div>
 
                 <div class="payment-required-notice" id="paymentRequiredNotice">
@@ -668,47 +659,6 @@
         let isProcessingPayment = false;
         let applicationId = '';
         let paymentIntentId = '';
-        let isDevelopmentMode = false;
-
-        // Check if we're in development mode (localhost or .netlify.app)
-        function checkDevelopmentMode() {
-            const hostname = window.location.hostname;
-            isDevelopmentMode = hostname === 'localhost' || 
-                              hostname === '127.0.0.1' || 
-                              hostname.includes('.netlify.app') ||
-                              hostname.includes('.ngrok.io');
-            
-            if (isDevelopmentMode) {
-                document.getElementById('devBypass').style.display = 'block';
-            }
-        }
-
-        // Toggle payment bypass for development
-        function togglePaymentBypass() {
-            const bypassCheckbox = document.getElementById('bypassPayment');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (bypassCheckbox.checked) {
-                // Bypass payment
-                paymentCompleted = true;
-                applicationId = generateApplicationId();
-                paymentIntentId = 'DEV_BYPASS_' + Date.now();
-                
-                document.getElementById('paymentNotice').style.display = 'none';
-                document.getElementById('paymentSuccess').style.display = 'block';
-                document.getElementById('paymentSuccess').innerHTML = '<h3>🔧 Development Mode - Payment Bypassed</h3><p>You can now submit your application without payment.</p>';
-                submitBtn.disabled = false;
-            } else {
-                // Restore normal payment requirement
-                paymentCompleted = false;
-                applicationId = '';
-                paymentIntentId = '';
-                
-                document.getElementById('paymentNotice').style.display = 'block';
-                document.getElementById('paymentSuccess').style.display = 'none';
-                submitBtn.disabled = true;
-            }
-        }
 
         function generateApplicationId() {
             return 'APP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
@@ -795,30 +745,6 @@
             }
         }
 
-        // Function to clear all payment-related data from localStorage and reset payment status
-        function clearPaymentData() {
-            // Clear all payment-related localStorage items
-            localStorage.removeItem('paymentCompleted');
-            localStorage.removeItem('paymentSessionId');
-            localStorage.removeItem('paymentIntentId');
-            localStorage.removeItem('applicationFormData');
-            localStorage.removeItem('savedFormData');
-            localStorage.removeItem('applicationId');
-            
-            // Reset payment status variables
-            paymentCompleted = false;
-            paymentIntentId = '';
-            applicationId = '';
-            
-            // Reset UI elements to initial state
-            document.getElementById('paymentNotice').style.display = 'block';
-            document.getElementById('paymentSuccess').style.display = 'none';
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = 'Submit Application';
-            
-            // Clear the form
-            document.getElementById('housingForm').reset();
-        }
 
 
         async function processPayment() {
@@ -1057,9 +983,6 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if we're in development mode
-            checkDevelopmentMode();
-            
             // Check payment status on page load
             checkPaymentStatus();
             
