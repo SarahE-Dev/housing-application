@@ -308,7 +308,9 @@
             <div class="success-message" id="successMessage">
                 <h3>✅ Application Submitted Successfully!</h3>
                 <p>Your confirmation code is: <strong id="confirmationCodeDisplay"></strong></p>
-                <p>Please save this code for your records. You will also receive a confirmation email shortly.</p>
+                <p>Your application ID is: <strong id="applicationIdDisplay"></strong></p>
+                <p><strong>IMPORTANT:</strong> Please save these numbers for your records. Reference your confirmation code and application ID in all future communications about your application.</p>
+                <p id="emailStatus">A confirmation email has been sent to your email address.</p>
             </div>
             
             <div class="error-message" id="errorMessage">
@@ -944,7 +946,6 @@
             try {
                 console.log('EmailJS object:', emailjs);
                 console.log('Sending email to:', formData.emailAddress);
-                console.log('Full form data:', formData);
 
                 // Check if EmailJS is loaded
                 if (typeof emailjs === 'undefined') {
@@ -959,8 +960,6 @@
                 };
 
                 console.log('Email data being sent:', emailData);
-                console.log('Service ID:', 'service_lbpvf3o');
-                console.log('Template ID:', 'application_confirmation');
 
                 // Send confirmation email to applicant
                 const result = await emailjs.send(
@@ -970,14 +969,11 @@
                 );
 
                 console.log('✅ Email sent successfully:', result);
-                console.log('Email result status:', result.status);
-                console.log('Email result text:', result.text);
+                return { success: true, message: 'A confirmation email has been sent to your email address.' };
+                
             } catch (error) {
                 console.error('❌ Email error:', error);
-                console.error('Error details:', error.message, error.stack);
-                console.error('Error status:', error.status);
-                console.error('Error text:', error.text);
-                // Don't fail the whole submission if emails fail
+                return { success: false, message: 'Your application was submitted successfully, but we were unable to send a confirmation email. Please save your confirmation code and application ID above for your records.' };
             }
         }
 
@@ -1078,8 +1074,19 @@
                 const success = await submitToGoogleSheets(data);
 
                 if (success) {
-                    // Display the confirmation code
+                    // Display the confirmation code and application ID
                     document.getElementById('confirmationCodeDisplay').textContent = confirmationCode;
+                    document.getElementById('applicationIdDisplay').textContent = applicationId;
+                    
+                    // Try to send confirmation email (but don't fail if it doesn't work)
+                    const emailResult = await sendConfirmationEmails(data);
+                    document.getElementById('emailStatus').textContent = emailResult.message;
+                    
+                    // If email failed, style the message differently
+                    if (!emailResult.success) {
+                        document.getElementById('emailStatus').style.color = '#856404';
+                        document.getElementById('emailStatus').style.fontWeight = 'bold';
+                    }
                     
                     // Clear payment data after successful submission
                     localStorage.removeItem('paymentCompleted');
